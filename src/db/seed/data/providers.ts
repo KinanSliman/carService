@@ -8,7 +8,7 @@
  *
  * Names are deliberately uneven in length. The longest one here
  * (`al-amana-engine`) exists to break any layout that assumes a title fits on
- * one line — see risk 6 in plan.md.
+ * one line: thin, tidy seed data hides truncation bugs until they ship.
  *
  * `services` lists catalog slugs; the seed resolves them and fails loudly on a
  * typo. `priceFactor` shifts that workshop's prices off the catalog base so the
