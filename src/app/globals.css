@@ -1,0 +1,277 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   Tokens.
+
+   Everything lives in CSS custom properties rather than a Tailwind config, so
+   the palette, the elevation scale and the type scale have exactly one
+   definition each, readable in the browser inspector.
+
+   The palette is deliberately cool — a green-grey off-white and a deep petrol
+   ink, not the warm cream and near-black that every service-booking template
+   ships with. `--marker` is a mechanic's paint marker: it means "look here" or
+   "due now", never decoration, and never more than twice in one viewport.
+--------------------------------------------------------------------------- */
+
+@theme {
+  --color-paper: #f1f4f3;
+  --color-surface: #ffffff;
+  --color-ink: #0e1f26;
+  --color-steel: #5d6e73;
+  --color-line: #d8dedc;
+  --color-marker: #f2b705;
+  --color-ok: #2e7d5b;
+  --color-due: #c0392b;
+  --color-wait: #b26b00;
+
+  /* Tints derived from the above, for chips and hover states. */
+  --color-ink-8: #e7eaeb;
+  --color-ink-4: #f2f4f4;
+  --color-marker-12: #fdf3d7;
+  --color-ok-10: #e6f1ec;
+  --color-due-10: #f8e9e7;
+  --color-wait-10: #f7efe2;
+
+  /* Radius encodes hierarchy: sheets > cards > inputs > chips. */
+  --radius-chip: 999px;
+  --radius-input: 8px;
+  --radius-card: 12px;
+  --radius-sheet: 20px;
+
+  /* Three elevations, tinted with the ink hue rather than neutral grey.
+     If everything has a shadow, nothing is elevated. */
+  --shadow-e1: 0 1px 2px rgb(14 31 38 / 0.06);
+  --shadow-e2: 0 4px 16px -4px rgb(14 31 38 / 0.12);
+  --shadow-e3: 0 24px 48px -12px rgb(14 31 38 / 0.22);
+
+  --font-sans: var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+  /* Fixed-width digits only: plates, odometers, booking codes, totals. */
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Scale, in rem: 13 / 15 / 16 / 20 / 26 / 36 / 52 */
+  --text-2xs: 0.8125rem;
+  --text-2xs--line-height: 1.5;
+  --text-xs: 0.9375rem;
+  --text-xs--line-height: 1.6;
+  --text-base: 1rem;
+  --text-base--line-height: 1.75;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.625rem;
+  --text-xl--line-height: 1.35;
+  --text-2xl: 2.25rem;
+  --text-2xl--line-height: 1.2;
+  --text-3xl: 3.25rem;
+  --text-3xl--line-height: 1.1;
+
+  /* One easing for the whole interface. */
+  --ease-brisk: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  html {
+    /* Arabic numerals inside Latin runs and vice versa should not reflow the
+       line; tabular figures keep prices and codes aligned column to column. */
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  :root {
+    --container-pad: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    :root {
+      --container-pad: 1.5rem;
+    }
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Arabic headings need less leading than body copy, and Latin headings need
+     less again. One rule rather than a line-height on every heading. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    line-height: 1.25;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Never a ragged-right Arabic paragraph wider than a comfortable measure. */
+  .measure {
+    max-width: 68ch;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* The one place a browser default actively hurts RTL: number inputs. */
+  input[type='number'] {
+    appearance: textfield;
+  }
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  ::selection {
+    background-color: var(--color-marker-12);
+    color: var(--color-ink);
+  }
+}
+
+@layer utilities {
+  /* Digits read one at a time — codes, plates, odometers, money. */
+  .numeric {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+    letter-spacing: 0.01em;
+  }
+
+  /* Latin digits inside an Arabic sentence. Arabic-Indic digits are not used
+     in Qatari commercial contexts, so the interface stays with Latin figures. */
+  .latn {
+    font-variant-numeric: tabular-nums;
+    unicode-bidi: isolate;
+  }
+
+  /* A horizontal snap rail. Used by the banner, symptom and workshop rails
+     instead of a carousel library — RTL-correct and roughly zero bytes. */
+  .rail {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+  .rail > * {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+  }
+
+  /* Lets a rail run to the container's edges and keep its own end padding,
+     so the last card is not flush against the viewport.
+
+     Deliberately not the usual `margin-inline: calc(50% - 50vw)` trick: vw
+     includes the scrollbar, so that version overflows the document by the
+     scrollbar width and puts a horizontal scroll on every page. Measuring
+     against the container's own padding is exact, in both directions. */
+  .bleed {
+    margin-inline: calc(-1 * var(--container-pad));
+    padding-inline: var(--container-pad);
+  }
+
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion
+
+   The budget is one orchestrated, non-user-triggered moment per page. Every
+   other animation responds to an action. All of it is transform/opacity only,
+   and all of it is off under prefers-reduced-motion.
+--------------------------------------------------------------------------- */
+
+@layer utilities {
+  /* The home diagram drawing itself in, once per session. */
+  @keyframes draw-in {
+    from {
+      stroke-dashoffset: var(--draw-length, 1200);
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes fade-rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .animate-draw-in {
+    stroke-dasharray: var(--draw-length, 1200);
+    animation: draw-in 600ms var(--ease-brisk) forwards;
+  }
+
+  .animate-fade-rise {
+    animation: fade-rise 260ms var(--ease-brisk) both;
+  }
+
+  /* Press feedback: one step down in scale and one step down in elevation. */
+  .press {
+    transition:
+      transform 120ms var(--ease-brisk),
+      box-shadow 120ms var(--ease-brisk),
+      background-color 120ms var(--ease-brisk),
+      border-color 120ms var(--ease-brisk);
+  }
+  .press:active {
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-draw-in {
+    stroke-dasharray: none;
+  }
+}
