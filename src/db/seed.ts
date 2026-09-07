@@ -1,7 +1,5 @@
 import 'dotenv/config';
 import { config } from 'dotenv';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
 import { addDays, subDays } from 'date-fns';
 
@@ -14,14 +12,13 @@ import { makes } from './seed/data/vehicles';
 import { providers as providerData, hourOverrides } from './seed/data/providers';
 import { banners as bannerData } from './seed/data/banners';
 import { generateUniqueBookingCode } from '@/server/services/booking-code';
+import { announce, createCliDb } from './cli-db';
 
 const TZ = 'Asia/Qatar';
 
-const url = process.env.DATABASE_URL;
-if (!url) throw new Error('DATABASE_URL is not set.');
-
-const client = postgres(url, { max: 1 });
-const db = drizzle(client, { schema });
+const handle = createCliDb();
+announce(handle, 'seeding');
+const { db } = handle;
 
 /** QAR, rounded to the nearest 5 — nobody quotes 137.40 for a brake job. */
 function shiftPrice(base: number, factor: number): string {
@@ -589,4 +586,4 @@ async function main() {
 }
 
 await main();
-await client.end();
+await handle.close();

@@ -4,8 +4,9 @@ import postgres from 'postgres';
 
 config({ path: '.env.local', override: false });
 
-const url = process.env.DATABASE_URL;
-if (!url) throw new Error('DATABASE_URL is not set.');
+import { cliConnectionString, describeConnection } from './connection';
+
+const url = cliConnectionString();
 
 /**
  * Drops and recreates the public schema, plus drizzle's migration bookkeeping.
@@ -20,7 +21,7 @@ if (!isLocal && process.env.ALLOW_REMOTE_DROP !== 'yes') {
   );
 }
 
-const client = postgres(url, { max: 1 });
+const client = postgres(url, { max: 1, prepare: false });
 
 await client.unsafe(`
   drop schema if exists public cascade;
@@ -28,5 +29,5 @@ await client.unsafe(`
   drop schema if exists drizzle cascade;
 `);
 
-console.log('schema dropped');
+console.log(`schema dropped on ${describeConnection(url)}`);
 await client.end();

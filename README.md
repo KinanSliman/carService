@@ -130,10 +130,14 @@ These were cut on purpose, not left unfinished. Each costs a week and produces n
 Local Postgres in Docker is the development setup. The live path:
 
 1. Create a Neon (or Supabase) Postgres instance.
-2. On Vercel, set `DATABASE_URL`, `NEXT_PUBLIC_SITE_URL`, and `CRON_SECRET`.
-3. Deploy. Migrations are committed, so `pnpm db:migrate` against the production URL is all that is needed.
-4. Seed **once**, explicitly: `pnpm db:seed:prod`. Never automatic on deploy.
+2. Put its URLs in `.env.production` (gitignored) — `DATABASE_URL` for the pooled endpoint, `DATABASE_URL_UNPOOLED` for the direct one.
+3. `pnpm db:migrate:prod`, then **once**, explicitly, `pnpm db:seed:prod`. Never automatic on deploy.
+4. On Vercel set `DATABASE_URL` (pooled), `NEXT_PUBLIC_SITE_URL`, and `CRON_SECRET`.
 5. `vercel.json` registers the daily cleanup cron at 02:00 UTC.
+
+**Two endpoints, two drivers.** The pooled endpoint goes through pgbouncer in transaction mode, which does not keep a session across statements — so migrations and the seed use the direct endpoint, and the runtime client turns off prepared statements whenever the URL points at a pooler.
+
+On top of that, the CLI scripts pick a *driver*: postgres.js over the wire protocol on port 5432, or Neon's SQL-over-HTTPS on 443. A `*.neon.tech` host defaults to the HTTP one, because plenty of networks — corporate egress filters, some VPNs — accept the TCP handshake on 5432 and then reset the connection as soon as they see non-HTTP bytes. Force either with `DATABASE_DRIVER=postgres|neon-http`. The HTTP driver has no transactions; nothing in the seed needs one, but anything added later that does must use `postgres`.
 
 Catalog pages use `generateStaticParams` with hourly ISR — 80+ service pages and 28 workshop pages are prerendered at build. Only `/book`, `/booking/[code]`, `/track` and `/workshops` (which is a search page) are dynamic. A cold free-tier Postgres can take a second to wake, and static catalog pages mean the first impression never waits on it.
 

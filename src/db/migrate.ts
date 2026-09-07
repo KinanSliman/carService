@@ -1,17 +1,28 @@
 import 'dotenv/config';
 import { config } from 'dotenv';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { neon } from '@neondatabase/serverless';
+import { drizzle as drizzleHttp } from 'drizzle-orm/neon-http';
+import { migrate as migrateHttp } from 'drizzle-orm/neon-http/migrator';
+import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
+import { migrate as migratePostgres } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
+import { cliConnectionString, describeConnection, selectDriver } from './connection';
 
 config({ path: '.env.local', override: false });
 
-const url = process.env.DATABASE_URL;
-if (!url) throw new Error('DATABASE_URL is not set.');
+const url = cliConnectionString();
+const driver = selectDriver(url);
+const folder = './drizzle';
 
-/** `max: 1` — a migration must not interleave across connections. */
-const client = postgres(url, { max: 1 });
+console.log(`migrating ${describeConnection(url)} via ${driver}`);
 
-await migrate(drizzle(client), { migrationsFolder: './drizzle' });
+if (driver === 'neon-http') {
+  await migrateHttp(drizzleHttp(neon(url)), { migrationsFolder: folder });
+} else {
+  // `max: 1` — a migration must not interleave across connections.
+  const client = postgres(url, { max: 1, prepare: false });
+  await migratePostgres(drizzlePostgres(client), { migrationsFolder: folder });
+  await client.end();
+}
+
 console.log('migrations applied');
-await client.end();
