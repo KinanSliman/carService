@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:16.6-alpine
+    container_name: karaj-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: karaj
+      POSTGRES_PASSWORD: karaj
+      POSTGRES_DB: karaj
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      # 5433 on the host: a system PostgreSQL install commonly already owns 5432.
+      # Override with KARAJ_DB_PORT=5432 if your 5432 is free.
+      - '${KARAJ_DB_PORT:-5433}:5432'
+    volumes:
+      - karaj-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U karaj -d karaj']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  karaj-pgdata:
