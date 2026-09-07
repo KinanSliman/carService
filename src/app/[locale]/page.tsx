@@ -43,11 +43,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
-      {/* Hero. On desktop the diagram and the copy sit side by side; on mobile
-          the diagram leads, because the diagram is the idea. */}
+      {/* Hero.
+          Mobile leads with the diagram, because the diagram is the idea — and
+          it is first in the DOM too, so the visual order and the tab order
+          agree on the breakpoint that matters most.
+          Desktop puts the copy in the wider inline-start column and the diagram
+          at the inline-end, which in RTL reads copy-right, diagram-left. */}
       <Container className="pt-6 sm:pt-10">
         <div className="grid items-center gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-12">
-          <div className="order-1 lg:order-2">
+          <div className="lg:order-2">
+            <CarDiagram categories={hotspots} />
+          </div>
+
+          <div className="lg:order-1">
             <h1 className="text-2xl sm:text-3xl">{t('heroTitle')}</h1>
             <p className="text-steel measure mt-4 text-xs sm:text-base">{t('heroBody')}</p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -56,10 +64,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </Link>
               <p className="text-steel hidden text-2xs lg:block">{t('heroAlt')}</p>
             </div>
-          </div>
-
-          <div className="order-2 lg:order-1">
-            <CarDiagram categories={hotspots} />
           </div>
         </div>
       </Container>
