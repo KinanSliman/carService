@@ -95,7 +95,7 @@ Everything uses logical properties, and an ESLint rule fails the build on the Ta
 
 | Layer | Choice |
 |---|---|
-| Framework | Next.js 15, App Router, React Server Components |
+| Framework | Next.js 15.5, App Router, React Server Components |
 | Language | TypeScript, `strict`, no `any` |
 | Database | PostgreSQL 16 (Docker), Drizzle ORM, migrations in git |
 | Styling | Tailwind CSS v4, tokens as CSS custom properties |
@@ -151,6 +151,7 @@ _To capture:_ home at 390×844 (Arabic), the car diagram with a zone selected, t
 
 ## Verified
 
+- `pnpm audit` — 0 advisories
 - `pnpm test` — 38 passing
 - `pnpm typecheck` — clean
 - `pnpm lint` — clean
